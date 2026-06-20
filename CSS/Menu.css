@@ -1,0 +1,128 @@
+﻿body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: #f8f4ee;
+}
+
+/* Navbar */
+
+.navbar {
+    background: #6b3e26;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 40px;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: white;
+    margin-left: 20px;
+    font-size: 15px;
+}
+
+    .nav-links a:hover {
+        color: #f2d3a5;
+    }
+
+/* Main Layout */
+
+.container {
+    width: 90%;
+    margin: 30px auto;
+}
+
+/* Cards */
+
+.form-card,
+.grid-card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,.08);
+    margin-bottom: 25px;
+}
+
+    .form-card h2,
+    .grid-card h2 {
+        color: #6b3e26;
+        margin-top: 0;
+    }
+
+/* Inputs */
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+    .input-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+    }
+
+.input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+/* Buttons */
+
+.button-area {
+    margin-top: 20px;
+}
+
+.save-btn,
+.clear-btn {
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.save-btn {
+    background: #6b3e26;
+    color: white;
+}
+
+.clear-btn {
+    background: #c8b6a6;
+}
+
+/* Grid */
+
+.menu-grid {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .menu-grid th {
+        background: #6b3e26;
+        color: white;
+        padding: 12px;
+    }
+
+    .menu-grid td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .menu-grid tr:hover {
+        background: #faf3e7;
+    }
+
+/* Message */
+
+.message {
+    color: green;
+    font-weight: bold;
+}
