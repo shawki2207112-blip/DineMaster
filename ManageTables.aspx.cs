@@ -34,7 +34,71 @@ namespace DineMaster
             gvTables.DataBind();
         }
 
+        protected void btnSave_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                con.Open();
 
+                if (hfTableID.Value == "")
+                {
+                    SqlCommand cmd =
+                        new SqlCommand(
+                        @"INSERT INTO RESTAURANT_TABLES
+                        (table_number, capacity, status)
+                        VALUES
+                        (@number, @capacity, @status)", con);
+
+                    cmd.Parameters.AddWithValue("@number",
+                        Convert.ToInt32(txtTableNumber.Text));
+
+                    cmd.Parameters.AddWithValue("@capacity",
+                        Convert.ToInt32(txtCapacity.Text));
+
+                    cmd.Parameters.AddWithValue("@status",
+                        ddlStatus.SelectedValue);
+
+                    cmd.ExecuteNonQuery();
+
+                    lblMessage.Text = "Table Added Successfully";
+                }
+                else
+                {
+                    SqlCommand cmd =
+                        new SqlCommand(
+                        @"UPDATE RESTAURANT_TABLES
+                        SET
+                        table_number=@number,
+                        capacity=@capacity,
+                        status=@status
+                        WHERE table_id=@id", con);
+
+                    cmd.Parameters.AddWithValue("@id",
+                        Convert.ToInt32(hfTableID.Value));
+
+                    cmd.Parameters.AddWithValue("@number",
+                        Convert.ToInt32(txtTableNumber.Text));
+
+                    cmd.Parameters.AddWithValue("@capacity",
+                        Convert.ToInt32(txtCapacity.Text));
+
+                    cmd.Parameters.AddWithValue("@status",
+                        ddlStatus.SelectedValue);
+
+                    cmd.ExecuteNonQuery();
+
+                    lblMessage.Text = "Table Updated Successfully";
+                }
+
+                con.Close();
+
+                LoadTables();
+            }
+            catch (Exception ex)
+            {
+                lblMessage.Text = ex.Message;
+            }
+        }
 
         protected void gvTables_RowCommand(
             object sender,
