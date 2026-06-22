@@ -1,0 +1,131 @@
+﻿body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: #f8f4ee;
+}
+
+/* Navbar */
+
+.navbar {
+    background: #6b3e26;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 40px;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+}
+
+    .nav-links a:hover {
+        color: #f5d7a1;
+    }
+
+/* Layout */
+
+.container {
+    width: 90%;
+    margin: 30px auto;
+}
+
+/* Cards */
+
+.form-card,
+.grid-card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+    .form-card h2,
+    .grid-card h2 {
+        color: #6b3e26;
+    }
+
+/* Inputs */
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+    .input-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+
+.input {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+/* Buttons */
+
+.button-area {
+    margin-top: 20px;
+}
+
+.save-btn {
+    background: #6b3e26;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.clear-btn {
+    background: #d5c1a8;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+.save-btn:hover {
+    background: #4f2d1d;
+}
+
+/* GridView */
+
+.table-grid {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .table-grid th {
+        background: #6b3e26;
+        color: white;
+        padding: 12px;
+    }
+
+    .table-grid td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .table-grid tr:hover {
+        background: #faf1e2;
+    }
+
+/* Messages */
+
+.message {
+    color: green;
+    font-weight: bold;
+}
