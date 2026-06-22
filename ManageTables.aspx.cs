@@ -91,8 +91,9 @@ namespace DineMaster
                 }
 
                 con.Close();
-
+                ClearFields();
                 LoadTables();
+
             }
             catch (Exception ex)
             {
@@ -162,6 +163,19 @@ namespace DineMaster
             }
         }
 
-        
+        protected void btnClear_Click(object sender, EventArgs e)
+        {
+            ClearFields();
+        }
+        void ClearFields()
+        {
+            hfTableID.Value = "";
+
+            txtTableNumber.Text = "";
+
+            txtCapacity.Text = "";
+
+            ddlStatus.SelectedIndex = 0;
+        }
     }
 }
