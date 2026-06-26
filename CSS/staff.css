@@ -1,0 +1,163 @@
+﻿body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: #f8f4ee;
+}
+
+/* NAVBAR */
+
+.navbar {
+    background: #6b3e26;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 40px;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+    transition: 0.3s;
+}
+
+    .nav-links a:hover {
+        color: #f5d7a1;
+    }
+
+/* MAIN CONTAINER */
+
+.container {
+    width: 90%;
+    margin: 30px auto;
+}
+
+/* FORM CARD */
+
+.form-card {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    margin-bottom: 25px;
+}
+
+    .form-card h2 {
+        margin-top: 0;
+        color: #6b3e26;
+    }
+
+/* GRID CARD */
+
+.grid-card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+    .grid-card h2 {
+        margin-top: 0;
+        color: #6b3e26;
+    }
+
+/* FORM LAYOUT */
+
+.input-group {
+    margin-bottom: 18px;
+}
+
+    .input-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        color: #444;
+    }
+
+.input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d0d0d0;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 14px;
+}
+
+    .input:focus {
+        outline: none;
+        border-color: #6b3e26;
+    }
+
+/* BUTTONS */
+
+.button-area {
+    margin-top: 25px;
+}
+
+.save-btn {
+    background: #6b3e26;
+    color: white;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+    .save-btn:hover {
+        background: #4d2c1c;
+    }
+
+.clear-btn {
+    background: #d5c1a8;
+    color: black;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 10px;
+}
+
+    .clear-btn:hover {
+        background: #c5ae91;
+    }
+
+/* GRIDVIEW */
+
+.staff-grid {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .staff-grid th {
+        background: #6b3e26;
+        color: white;
+        padding: 12px;
+        text-align: center;
+    }
+
+    .staff-grid td {
+        padding: 10px;
+        text-align: center;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .staff-grid tr:hover {
+        background: #faf1e2;
+    }
+
+/* MESSAGE */
+
+.message {
+    display: block;
+    margin-bottom: 15px;
+    color: green;
+    font-weight: bold;
+}
