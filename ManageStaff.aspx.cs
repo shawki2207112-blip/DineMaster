@@ -36,7 +36,91 @@ namespace DineMaster
 
         protected void btnSave_Click(object sender, EventArgs e)
         {
-            
+            try
+            {
+                con.Open();
+
+                if (hfStaffID.Value == "")
+                {
+                    OracleCommand cmd =
+                        new OracleCommand(
+                        @"INSERT INTO STAFF
+                        (staff_id, staff_name, phone, salary, role, username, password)
+                        VALUES
+                        (staff_seq.NEXTVAL,
+                         :staffName,
+                         :staffPhone,
+                         :staffSalary,
+                         :staffRole,
+                         :staffUsername,
+                         :staffPassword)",
+                        con);
+
+                    cmd.BindByName = true;
+
+                    cmd.Parameters.Add(":staffName", txtStaffName.Text);
+                    cmd.Parameters.Add(":staffPhone", txtPhone.Text);
+                    cmd.Parameters.Add(":staffSalary",
+                        Convert.ToDecimal(txtSalary.Text));
+                    cmd.Parameters.Add(":staffRole", "Staff");
+                    cmd.Parameters.Add(":staffUsername", txtUsername.Text);
+                    cmd.Parameters.Add(":staffPassword", txtPassword.Text);
+
+                    cmd.ExecuteNonQuery();
+
+                    OracleCommand commitCmd =
+                        new OracleCommand("COMMIT", con);
+
+                    commitCmd.ExecuteNonQuery();
+
+                    lblMessage.Text = "Staff Added Successfully";
+                }
+                else
+                {
+                    OracleCommand cmd =
+                        new OracleCommand(
+                        @"UPDATE STAFF
+                        SET
+                        staff_name = :staffName,
+                        phone = :staffPhone,
+                        salary = :staffSalary,
+                        role = :staffRole,
+                        username = :staffUsername,
+                        password = :staffPassword
+                        WHERE staff_id = :staffId",
+                        con);
+
+                    cmd.BindByName = true;
+
+                    cmd.Parameters.Add(":staffName", txtStaffName.Text);
+                    cmd.Parameters.Add(":staffPhone", txtPhone.Text);
+                    cmd.Parameters.Add(":staffSalary",
+                        Convert.ToDecimal(txtSalary.Text));
+                    cmd.Parameters.Add(":staffRole", "Staff");
+                    cmd.Parameters.Add(":staffUsername", txtUsername.Text);
+                    cmd.Parameters.Add(":staffPassword", txtPassword.Text);
+                    cmd.Parameters.Add(":staffId",
+                        Convert.ToInt32(hfStaffID.Value));
+
+                    cmd.ExecuteNonQuery();
+
+                    OracleCommand commitCmd =
+                        new OracleCommand("COMMIT", con);
+
+                    commitCmd.ExecuteNonQuery();
+
+                    lblMessage.Text = "Staff Updated Successfully";
+                }
+
+                con.Close();
+
+                LoadStaff();
+                ClearFields();
+            }
+            catch (Exception ex)
+            {
+                lblMessage.Text = ex.Message;
+            }
         }
 
         protected void gvStaff_RowCommand(object sender,
