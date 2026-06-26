@@ -13,7 +13,10 @@ namespace DineMaster
 
             if (!IsPostBack)
             {
-                lblAdminName.Text = Session["StaffName"].ToString();
+                if (Session["StaffName"] != null)
+                    lblAdminName.Text = Session["StaffName"].ToString();
+                else
+                    Response.Redirect("Login.aspx");
             }
         }
 

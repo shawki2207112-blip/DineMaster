@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Configuration;
 using System.Data;
-using System.Data.SqlClient;
+using Oracle.ManagedDataAccess.Client;
 using System.Web.UI.WebControls;
 
 namespace DineMaster
 {
     public partial class ManageTables : System.Web.UI.Page
     {
-        SqlConnection con = new SqlConnection(
-            ConfigurationManager.ConnectionStrings["DBConnection"].ConnectionString);
+        OracleConnection con = new OracleConnection(
+        ConfigurationManager.ConnectionStrings["DBConnection"].ConnectionString);
+
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -21,9 +22,9 @@ namespace DineMaster
 
         void LoadTables()
         {
-            SqlDataAdapter da =
-                new SqlDataAdapter(
-                "SELECT * FROM RESTAURANT_TABLES",
+            OracleDataAdapter da =
+                new OracleDataAdapter(
+                "SELECT * FROM RESTAURANT_TABLES ORDER BY TABLE_ID",
                 con);
 
             DataTable dt = new DataTable();
@@ -36,64 +37,83 @@ namespace DineMaster
 
         protected void btnSave_Click(object sender, EventArgs e)
         {
+            lblMessage.Text = "";
             try
             {
                 con.Open();
 
                 if (hfTableID.Value == "")
                 {
-                    SqlCommand cmd =
-                        new SqlCommand(
-                        @"INSERT INTO RESTAURANT_TABLES
-                        (table_number, capacity, status)
-                        VALUES
-                        (@number, @capacity, @status)", con);
+                    string query =
+                    @"INSERT INTO RESTAURANT_TABLES
+                (TABLE_ID, TABLE_NUMBER, CAPACITY, STATUS)
+                VALUES
+                (table_seq.NEXTVAL, :tableNo, :tableCap, :tableStatus)";
 
-                    cmd.Parameters.AddWithValue("@number",
+                    OracleCommand cmd =
+                        new OracleCommand(query, con);
+
+                    cmd.BindByName = true;
+
+                    cmd.Parameters.Add(":tableNo",
                         Convert.ToInt32(txtTableNumber.Text));
 
-                    cmd.Parameters.AddWithValue("@capacity",
+                    cmd.Parameters.Add(":tableCap",
                         Convert.ToInt32(txtCapacity.Text));
 
-                    cmd.Parameters.AddWithValue("@status",
+                    cmd.Parameters.Add(":tableStatus",
                         ddlStatus.SelectedValue);
 
                     cmd.ExecuteNonQuery();
+
+                    OracleCommand commitCmd =
+                        new OracleCommand("COMMIT", con);
+
+                    commitCmd.ExecuteNonQuery();
 
                     lblMessage.Text = "Table Added Successfully";
                 }
                 else
                 {
-                    SqlCommand cmd =
-                        new SqlCommand(
-                        @"UPDATE RESTAURANT_TABLES
-                        SET
-                        table_number=@number,
-                        capacity=@capacity,
-                        status=@status
-                        WHERE table_id=@id", con);
+                    string query =
+                    @"UPDATE RESTAURANT_TABLES
+                SET
+                TABLE_NUMBER = :tableNo,
+                CAPACITY = :tableCap,
+                STATUS = :tableStatus
+                WHERE TABLE_ID = :tableId";
 
-                    cmd.Parameters.AddWithValue("@id",
-                        Convert.ToInt32(hfTableID.Value));
+                    OracleCommand cmd =
+                        new OracleCommand(query, con);
 
-                    cmd.Parameters.AddWithValue("@number",
+                    cmd.BindByName = true;
+
+                    cmd.Parameters.Add(":tableNo",
                         Convert.ToInt32(txtTableNumber.Text));
 
-                    cmd.Parameters.AddWithValue("@capacity",
+                    cmd.Parameters.Add(":tableCap",
                         Convert.ToInt32(txtCapacity.Text));
 
-                    cmd.Parameters.AddWithValue("@status",
+                    cmd.Parameters.Add(":tableStatus",
                         ddlStatus.SelectedValue);
 
+                    cmd.Parameters.Add(":tableId",
+                        Convert.ToInt32(hfTableID.Value));
+
                     cmd.ExecuteNonQuery();
+
+                    OracleCommand commitCmd =
+                        new OracleCommand("COMMIT", con);
+
+                    commitCmd.ExecuteNonQuery();
 
                     lblMessage.Text = "Table Updated Successfully";
                 }
 
                 con.Close();
+
                 ClearFields();
                 LoadTables();
-
             }
             catch (Exception ex)
             {
@@ -116,57 +136,72 @@ namespace DineMaster
             {
                 con.Open();
 
-                SqlCommand cmd =
-                    new SqlCommand(
-                    "DELETE FROM RESTAURANT_TABLES WHERE table_id=@id",
+                OracleCommand cmd =
+                    new OracleCommand(
+                    "DELETE FROM RESTAURANT_TABLES WHERE TABLE_ID = :tableId",
                     con);
 
-                cmd.Parameters.AddWithValue("@id", tableID);
+                cmd.BindByName = true;
+
+                cmd.Parameters.Add(":tableId", tableID);
 
                 cmd.ExecuteNonQuery();
+
+                OracleCommand commitCmd =
+                    new OracleCommand("COMMIT", con);
+
+                commitCmd.ExecuteNonQuery();
 
                 con.Close();
 
                 LoadTables();
+
+                lblMessage.Text = "Table Deleted Successfully";
             }
 
             if (e.CommandName == "EditRow")
             {
+                lblMessage.Text = "";
                 con.Open();
 
-                SqlCommand cmd =
-                    new SqlCommand(
-                    "SELECT * FROM RESTAURANT_TABLES WHERE table_id=@id",
+                OracleCommand cmd =
+                    new OracleCommand(
+                    "SELECT * FROM RESTAURANT_TABLES WHERE TABLE_ID = :tableId",
                     con);
 
-                cmd.Parameters.AddWithValue("@id", tableID);
+                cmd.BindByName = true;
 
-                SqlDataReader dr =
+                cmd.Parameters.Add(":tableId", tableID);
+
+                OracleDataReader dr =
                     cmd.ExecuteReader();
 
                 if (dr.Read())
                 {
                     hfTableID.Value =
-                        dr["table_id"].ToString();
+                        dr["TABLE_ID"].ToString();
 
                     txtTableNumber.Text =
-                        dr["table_number"].ToString();
+                        dr["TABLE_NUMBER"].ToString();
 
                     txtCapacity.Text =
-                        dr["capacity"].ToString();
+                        dr["CAPACITY"].ToString();
 
                     ddlStatus.SelectedValue =
-                        dr["status"].ToString();
+                        dr["STATUS"].ToString();
                 }
 
+                dr.Close();
                 con.Close();
             }
         }
 
         protected void btnClear_Click(object sender, EventArgs e)
         {
+            lblMessage.Text = "";
             ClearFields();
         }
+
         void ClearFields()
         {
             hfTableID.Value = "";
@@ -176,6 +211,8 @@ namespace DineMaster
             txtCapacity.Text = "";
 
             ddlStatus.SelectedIndex = 0;
+
         }
     }
+
 }
