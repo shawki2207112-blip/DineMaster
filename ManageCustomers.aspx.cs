@@ -28,7 +28,7 @@ namespace DineMaster
             if (!IsPostBack)
             {
                 LoadCustomers();
-                
+                LoadCustomerAnalytics();
             }
         }
 
@@ -57,7 +57,39 @@ namespace DineMaster
             gvCustomers.DataBind();
         }
 
-       
+        void LoadCustomerAnalytics()
+        {
+            try
+            {
+                string query = @"
+                SELECT c.customer_id,c.customer_name,
+                COUNT(o.order_id) AS total_orders,
+                CASE
+                    WHEN SUM(o.total_amount) IS NULL THEN 0
+                    ELSE SUM(o.total_amount)
+                END AS total_spent
+                FROM CUSTOMERS c
+                LEFT JOIN ORDERS o
+                ON c.customer_id = o.customer_id
+                GROUP BY
+                c.customer_id,
+                c.customer_name
+                ORDER BY
+                total_spent DESC";
+
+                OracleDataAdapter da = new OracleDataAdapter(query, con);
+
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
+                gvCustomerAnalytics.DataSource = dt;
+                gvCustomerAnalytics.DataBind();
+            }
+            catch (Exception ex)
+            {
+                lblMessage.Text = ex.ToString();
+            }
+        }
 
         protected void btnSave_Click(object sender, EventArgs e)
         {
@@ -144,7 +176,7 @@ namespace DineMaster
                 ClearFields();
 
                 LoadCustomers();
-                
+                LoadCustomerAnalytics();
             }
             catch (Exception ex)
             {
@@ -201,7 +233,7 @@ namespace DineMaster
                         "Customer Deleted Successfully";
 
                     LoadCustomers();
-                    
+                    LoadCustomerAnalytics();
                 }
                 catch (Exception ex)
                 {
