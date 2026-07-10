@@ -12,7 +12,6 @@
 
 <form id="form1" runat="server">
 
-    <!-- Header -->
     <div class="navbar">
 
         <div class="logo">
@@ -24,65 +23,57 @@
             <a href="ManageMenu.aspx">Menu</a>
             <a href="ManageTables.aspx">Tables</a>
             <a href="ManageStaff.aspx">Staff</a>
-            <a href="Reports.aspx">Reports</a>
+            <a href="ReportsAnalytics.aspx">Reports</a>
         </div>
 
     </div>
 
-    <!-- Main Container -->
-    <div class="container">
+    <div class="menu-layout" style="width:90%; margin:30px auto; display:flex; flex-direction:row; gap:25px; align-items:flex-start;">
 
-        <!-- Form Card -->
-        <div class="form-card">
+        <div class="form-card" style="width:320px; flex:0 0 320px;">
 
             <h2>Add / Update Menu Item</h2>
-
 
             <asp:HiddenField ID="hfItemID" runat="server" />
 
             <div class="input-group">
-
                 <label>Item Name</label>
 
                 <asp:TextBox ID="txtItemName"
                     runat="server"
-                    CssClass="input" Width="220px"></asp:TextBox>
-
+                    CssClass="input">
+                </asp:TextBox>
             </div>
 
             <div class="input-group">
-
                 <label>Category</label>
 
                 <asp:TextBox ID="txtCategory"
                     runat="server"
-                    CssClass="input" Width="220px"></asp:TextBox>
-
+                    CssClass="input">
+                </asp:TextBox>
             </div>
 
             <div class="input-group">
-
                 <label>Price</label>
 
                 <asp:TextBox ID="txtPrice"
                     runat="server"
-                    CssClass="input" Width="220px"></asp:TextBox>
-
+                    CssClass="input">
+                </asp:TextBox>
             </div>
 
             <div class="input-group">
-
                 <label>Availability</label>
 
                 <asp:DropDownList ID="ddlAvailability"
                     runat="server"
-                    CssClass="input" Width="166px">
+                    CssClass="input">
 
                     <asp:ListItem>Available</asp:ListItem>
                     <asp:ListItem>Unavailable</asp:ListItem>
 
                 </asp:DropDownList>
-
             </div>
 
             <div class="button-area">
@@ -100,7 +91,6 @@
                     OnClick="btnClear_Click" />
 
             </div>
-            <br />
 
             <asp:Label ID="lblMessage"
                 runat="server"
@@ -109,11 +99,31 @@
 
         </div>
 
-        <!-- Grid Card -->
-
-        <div class="grid-card">
+        <div class="grid-card" style="flex:1; min-width:0;">
 
             <h2>Menu Items</h2>
+
+            <div class="search-box">
+
+                <asp:TextBox ID="txtSearchItem"
+                    runat="server"
+                    CssClass="input search-input"
+                    Placeholder="Search by item name">
+                </asp:TextBox>
+
+                <asp:Button ID="btnSearch"
+                    runat="server"
+                    Text="Search"
+                    CssClass="save-btn"
+                    OnClick="btnSearch_Click" />
+
+                <asp:Button ID="btnShowAll"
+                    runat="server"
+                    Text="Show All"
+                    CssClass="clear-btn"
+                    OnClick="btnShowAll_Click" />
+
+            </div>
 
             <asp:GridView ID="gvMenu"
                 runat="server"

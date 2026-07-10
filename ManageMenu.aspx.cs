@@ -20,8 +20,35 @@ namespace DineMaster
 
         void LoadMenu()
         {
+            string query =
+            @"SELECT item_id, item_name, category, price, availability
+            FROM MENU_ITEMS
+            ORDER BY item_id";
+
             OracleDataAdapter da =
-                new OracleDataAdapter("SELECT * FROM MENU_ITEMS", con);
+                new OracleDataAdapter(query, con);
+
+            DataTable dt = new DataTable();
+            da.Fill(dt);
+
+            gvMenu.DataSource = dt;
+            gvMenu.DataBind();
+        }
+
+        void SearchMenuByName()
+        {
+            string query =
+            @"SELECT item_id, item_name, category, price, availability
+      FROM MENU_ITEMS
+      WHERE LOWER(item_name) LIKE LOWER(:item_name)
+      ORDER BY item_id";
+
+            OracleCommand cmd = new OracleCommand(query, con);
+            cmd.BindByName = true;
+
+            cmd.Parameters.Add(":item_name", "%" + txtSearchItem.Text.Trim() + "%");
+
+            OracleDataAdapter da = new OracleDataAdapter(cmd);
 
             DataTable dt = new DataTable();
             da.Fill(dt);
@@ -61,7 +88,7 @@ namespace DineMaster
                 string query =
                 @"UPDATE MENU_ITEMS
                 SET item_name = :name,
-                    category = :category,
+                   category = :category,
                     price = :price,
                     availability = :availability
                 WHERE item_id = :id";
@@ -87,6 +114,27 @@ namespace DineMaster
             con.Close();
 
             ClearFields();
+            LoadMenu();
+        }
+
+        protected void btnSearch_Click(object sender, EventArgs e)
+        {
+            lblMessage.Text = "";
+
+            if (txtSearchItem.Text.Trim() == "")
+            {
+                LoadMenu();
+            }
+            else
+            {
+                SearchMenuByName();
+            }
+        }
+
+        protected void btnShowAll_Click(object sender, EventArgs e)
+        {
+            txtSearchItem.Text = "";
+            lblMessage.Text = "";
             LoadMenu();
         }
 
