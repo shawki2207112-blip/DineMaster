@@ -26,16 +26,16 @@
             <a href="ManageMenu.aspx">Menu</a>
             <a href="ManageTables.aspx">Tables</a>
             <a href="ManageStaff.aspx">Staff</a>
-            <a href="Reports.aspx">Reports</a>
+            <a href="ReportsAnalytics.aspx">Reports</a>
         </div>
 
     </div>
 
-    <div class="container">
+    <div class="table-layout" style="width:90%; margin:30px auto; display:flex; flex-direction:row; gap:25px; align-items:flex-start;">
 
         <!-- Form Card -->
 
-        <div class="form-card">
+       <div class="form-card" style="width:320px; flex:0 0 320px;">
 
             <h2>Table Management</h2>
 
@@ -102,7 +102,7 @@
 
         <!-- Grid -->
 
-        <div class="grid-card">
+        <div class="grid-card" style="flex:1; min-width:0;">
 
             <h2>Restaurant Tables</h2>
 
