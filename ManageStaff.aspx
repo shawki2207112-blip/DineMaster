@@ -26,16 +26,14 @@
             <a href="ManageMenu.aspx">Menu</a>
             <a href="ManageTables.aspx">Tables</a>
             <a href="ManageStaff.aspx">Staff</a>
-            <a href="Reports.aspx">Reports</a>
+            <a href="ReportsAnalytics.aspx">Reports</a>
         </div>
 
     </div>
 
-    <div class="container">
+<div class="staff-layout" style="width:90%; margin:30px auto; display:flex; flex-direction:row; gap:25px; align-items:flex-start;">
 
-        <!-- Form -->
-
-        <div class="form-card">
+    <div class="form-card" style="width:320px; flex:0 0 320px;">
 
             <h2>Staff Management</h2>
 
@@ -101,9 +99,31 @@
 
         <!-- Grid -->
 
-        <div class="grid-card">
+        <div class="grid-card" style="flex:1; min-width:0;">
 
             <h2>Staff List</h2>
+
+            <div class="search-box">
+
+                <asp:TextBox ID="txtSearchStaff"
+                    runat="server"
+                    CssClass="input search-input"
+                    Placeholder="Search by staff name">
+                </asp:TextBox>
+
+                <asp:Button ID="btnSearchStaff"
+                    runat="server"
+                    Text="Search"
+                    CssClass="save-btn"
+                    OnClick="btnSearchStaff_Click" />
+
+                <asp:Button ID="btnShowAllStaff"
+                    runat="server"
+                    Text="Show All"
+                    CssClass="clear-btn"
+                    OnClick="btnShowAllStaff_Click" />
+
+            </div>
 
             <asp:GridView ID="gvStaff"
                 runat="server"

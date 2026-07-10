@@ -8,8 +8,8 @@ namespace DineMaster
 {
     public partial class ManageStaff : System.Web.UI.Page
     {
-        OracleConnection con = new OracleConnection(
-            ConfigurationManager.ConnectionStrings["DBConnection"].ConnectionString);
+        string connectionString =
+            ConfigurationManager.ConnectionStrings["DBConnection"].ConnectionString;
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -21,98 +21,138 @@ namespace DineMaster
 
         void LoadStaff()
         {
-            OracleDataAdapter da =
-                new OracleDataAdapter(
-                "SELECT * FROM STAFF WHERE ROLE = 'Staff' ORDER BY STAFF_ID",
-                con);
+            using (OracleConnection con = new OracleConnection(connectionString))
+            {
+                string query =
+                @"SELECT staff_id, staff_name, role, phone, salary, username
+                FROM STAFF
+                WHERE UPPER(role) = 'STAFF'
+                ORDER BY staff_id";
 
-            DataTable dt = new DataTable();
+                OracleDataAdapter da = new OracleDataAdapter(query, con);
 
-            da.Fill(dt);
+                DataTable dt = new DataTable();
+                da.Fill(dt);
 
-            gvStaff.DataSource = dt;
-            gvStaff.DataBind();
+                gvStaff.DataSource = dt;
+                gvStaff.DataBind();
+            }
+        }
+
+        void SearchStaffByName()
+        {
+            using (OracleConnection con = new OracleConnection(connectionString))
+            {
+                string query =
+                @"SELECT staff_id, staff_name, role, phone, salary, username
+                 FROM STAFF
+                WHERE UPPER(role) = 'STAFF'
+               AND LOWER(staff_name) LIKE LOWER(:staff_name)
+                ORDER BY staff_id";
+
+                OracleCommand cmd = new OracleCommand(query, con);
+                cmd.BindByName = true;
+
+                cmd.Parameters.Add(":staff_name", OracleDbType.Varchar2)
+                    .Value = "%" + txtSearchStaff.Text.Trim() + "%";
+
+                OracleDataAdapter da = new OracleDataAdapter(cmd);
+
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
+                gvStaff.DataSource = dt;
+                gvStaff.DataBind();
+            }
+        }
+
+        protected void btnSearchStaff_Click(object sender, EventArgs e)
+        {
+            lblMessage.Text = "";
+
+            if (txtSearchStaff.Text.Trim() == "")
+            {
+                LoadStaff();
+            }
+            else
+            {
+                SearchStaffByName();
+            }
+        }
+
+        protected void btnShowAllStaff_Click(object sender, EventArgs e)
+        {
+            txtSearchStaff.Text = "";
+            lblMessage.Text = "";
+            LoadStaff();
         }
 
         protected void btnSave_Click(object sender, EventArgs e)
         {
             try
             {
-                con.Open();
-
-                if (hfStaffID.Value == "")
+                using (OracleConnection con = new OracleConnection(connectionString))
                 {
-                    OracleCommand cmd =
-                        new OracleCommand(
-                        @"INSERT INTO STAFF
-                        (staff_id, staff_name, phone, salary, role, username, password)
-                        VALUES
-                        (staff_seq.NEXTVAL,
-                         :staffName,
-                         :staffPhone,
-                         :staffSalary,
-                         :staffRole,
-                         :staffUsername,
-                         :staffPassword)",
-                        con);
+                    con.Open();
 
-                    cmd.BindByName = true;
+                    if (hfStaffID.Value == "")
+                    {
+                        OracleCommand cmd =
+                            new OracleCommand(
+                            @"INSERT INTO STAFF
+                            (staff_id, staff_name, phone, salary, role, username, password)
+                            VALUES
+                            (staff_seq.NEXTVAL,
+                             :staffName,
+                             :staffPhone,
+                             :staffSalary,
+                             :staffRole,
+                             :staffUsername,
+                             :staffPassword)",
+                            con);
 
-                    cmd.Parameters.Add(":staffName", txtStaffName.Text);
-                    cmd.Parameters.Add(":staffPhone", txtPhone.Text);
-                    cmd.Parameters.Add(":staffSalary",
-                        Convert.ToDecimal(txtSalary.Text));
-                    cmd.Parameters.Add(":staffRole", "Staff");
-                    cmd.Parameters.Add(":staffUsername", txtUsername.Text);
-                    cmd.Parameters.Add(":staffPassword", txtPassword.Text);
+                        cmd.BindByName = true;
 
-                    cmd.ExecuteNonQuery();
+                        cmd.Parameters.Add(":staffName", txtStaffName.Text);
+                        cmd.Parameters.Add(":staffPhone", txtPhone.Text);
+                        cmd.Parameters.Add(":staffSalary", Convert.ToDecimal(txtSalary.Text));
+                        cmd.Parameters.Add(":staffRole", "Staff");
+                        cmd.Parameters.Add(":staffUsername", txtUsername.Text);
+                        cmd.Parameters.Add(":staffPassword", txtPassword.Text);
 
-                    OracleCommand commitCmd =
-                        new OracleCommand("COMMIT", con);
+                        cmd.ExecuteNonQuery();
 
-                    commitCmd.ExecuteNonQuery();
+                        lblMessage.Text = "Staff Added Successfully";
+                    }
+                    else
+                    {
+                        OracleCommand cmd =
+                            new OracleCommand(
+                            @"UPDATE STAFF
+                            SET staff_name = :staffName,
+                                phone = :staffPhone,
+                                salary = :staffSalary,
+                                role = :staffRole,
+                                username = :staffUsername,
+                                password = :staffPassword
+                            WHERE staff_id = :staffId",
+                            con);
 
-                    lblMessage.Text = "Staff Added Successfully";
+                        cmd.BindByName = true;
+
+                        cmd.Parameters.Add(":staffName", txtStaffName.Text);
+                        cmd.Parameters.Add(":staffPhone", txtPhone.Text);
+                        cmd.Parameters.Add(":staffSalary", Convert.ToDecimal(txtSalary.Text));
+                        cmd.Parameters.Add(":staffRole", "Staff");
+                        cmd.Parameters.Add(":staffUsername", txtUsername.Text);
+                        cmd.Parameters.Add(":staffPassword", txtPassword.Text);
+                        cmd.Parameters.Add(":staffId", Convert.ToInt32(hfStaffID.Value));
+
+                        cmd.ExecuteNonQuery();
+
+                        lblMessage.Text = "Staff Updated Successfully";
+                    }
                 }
-                else
-                {
-                    OracleCommand cmd =
-                        new OracleCommand(
-                        @"UPDATE STAFF
-                        SET
-                        staff_name = :staffName,
-                        phone = :staffPhone,
-                        salary = :staffSalary,
-                        role = :staffRole,
-                        username = :staffUsername,
-                        password = :staffPassword
-                        WHERE staff_id = :staffId",
-                        con);
-
-                    cmd.BindByName = true;
-
-                    cmd.Parameters.Add(":staffName", txtStaffName.Text);
-                    cmd.Parameters.Add(":staffPhone", txtPhone.Text);
-                    cmd.Parameters.Add(":staffSalary",
-                        Convert.ToDecimal(txtSalary.Text));
-                    cmd.Parameters.Add(":staffRole", "Staff");
-                    cmd.Parameters.Add(":staffUsername", txtUsername.Text);
-                    cmd.Parameters.Add(":staffPassword", txtPassword.Text);
-                    cmd.Parameters.Add(":staffId",
-                        Convert.ToInt32(hfStaffID.Value));
-
-                    cmd.ExecuteNonQuery();
-
-                    OracleCommand commitCmd =
-                        new OracleCommand("COMMIT", con);
-
-                    commitCmd.ExecuteNonQuery();
-
-                    lblMessage.Text = "Staff Updated Successfully";
-                }
-
-                con.Close();
 
                 LoadStaff();
                 ClearFields();
@@ -123,82 +163,90 @@ namespace DineMaster
             }
         }
 
-        protected void gvStaff_RowCommand(object sender,
-            GridViewCommandEventArgs e)
+        protected void gvStaff_RowCommand(object sender, GridViewCommandEventArgs e)
         {
-            int rowIndex =
-                Convert.ToInt32(e.CommandArgument);
+            int rowIndex = Convert.ToInt32(e.CommandArgument);
 
             int staffID =
-                Convert.ToInt32(
-                gvStaff.DataKeys[rowIndex].Value);
+                Convert.ToInt32(gvStaff.DataKeys[rowIndex].Value);
 
             if (e.CommandName == "DeleteRow")
             {
-                con.Open();
+                try
+                {
+                    using (OracleConnection con = new OracleConnection(connectionString))
+                    {
+                        con.Open();
 
-                OracleCommand cmd =
-                    new OracleCommand(
-                    "DELETE FROM STAFF WHERE staff_id = :staffId",
-                    con);
+                        OracleCommand cmd =
+                            new OracleCommand(
+                            "DELETE FROM STAFF WHERE staff_id = :staffId",
+                            con);
 
-                cmd.BindByName = true;
+                        cmd.BindByName = true;
 
-                cmd.Parameters.Add(":staffId", staffID);
+                        cmd.Parameters.Add(":staffId", staffID);
 
-                cmd.ExecuteNonQuery();
+                        cmd.ExecuteNonQuery();
+                    }
 
-                OracleCommand commitCmd =
-                    new OracleCommand("COMMIT", con);
+                    LoadStaff();
 
-                commitCmd.ExecuteNonQuery();
-
-                con.Close();
-
-                LoadStaff();
-
-                lblMessage.Text = "Staff Deleted Successfully";
+                    lblMessage.Text = "Staff Deleted Successfully";
+                }
+                catch (Exception ex)
+                {
+                    lblMessage.Text = ex.Message;
+                }
             }
 
             if (e.CommandName == "EditRow")
             {
-                con.Open();
-
-                OracleCommand cmd =
-                    new OracleCommand(
-                    "SELECT * FROM STAFF WHERE staff_id = :staffId",
-                    con);
-
-                cmd.BindByName = true;
-
-                cmd.Parameters.Add(":staffId", staffID);
-
-                OracleDataReader dr =
-                    cmd.ExecuteReader();
-
-                if (dr.Read())
+                try
                 {
-                    hfStaffID.Value =
-                        dr["staff_id"].ToString();
+                    using (OracleConnection con = new OracleConnection(connectionString))
+                    {
+                        con.Open();
 
-                    txtStaffName.Text =
-                        dr["staff_name"].ToString();
+                        OracleCommand cmd =
+                            new OracleCommand(
+                            "SELECT * FROM STAFF WHERE staff_id = :staffId",
+                            con);
 
-                    txtPhone.Text =
-                        dr["phone"].ToString();
+                        cmd.BindByName = true;
 
-                    txtSalary.Text =
-                        dr["salary"].ToString();
+                        cmd.Parameters.Add(":staffId", staffID);
 
-                    txtUsername.Text =
-                        dr["username"].ToString();
+                        OracleDataReader dr = cmd.ExecuteReader();
 
-                    txtPassword.Text =
-                        dr["password"].ToString();
+                        if (dr.Read())
+                        {
+                            hfStaffID.Value =
+                                dr["staff_id"].ToString();
+
+                            txtStaffName.Text =
+                                dr["staff_name"].ToString();
+
+                            txtPhone.Text =
+                                dr["phone"].ToString();
+
+                            txtSalary.Text =
+                                dr["salary"].ToString();
+
+                            txtUsername.Text =
+                                dr["username"].ToString();
+
+                            txtPassword.Text =
+                                dr["password"].ToString();
+                        }
+
+                        dr.Close();
+                    }
                 }
-
-                dr.Close();
-                con.Close();
+                catch (Exception ex)
+                {
+                    lblMessage.Text = ex.Message;
+                }
             }
         }
 
