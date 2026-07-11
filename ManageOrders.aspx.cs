@@ -700,3 +700,76 @@ namespace DineMaster
             }
         }
 
+        protected void btnCancelOrder_Click(object sender, EventArgs e)
+        {
+            int orderID = GetSelectedOrderID();
+
+            if (orderID == 0)
+            {
+                lblMessage.Text = "Please select an order first.";
+                return;
+            }
+
+            try
+            {
+                using (OracleConnection con = new OracleConnection(connectionString))
+                {
+                    con.Open();
+
+                    OracleCommand cmd = new OracleCommand("CancelOrder", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.BindByName = true;
+
+                    cmd.Parameters.Add("p_order_id", OracleDbType.Int32)
+                        .Value = orderID;
+
+                    cmd.ExecuteNonQuery();
+                }
+
+                lblMessage.Text = "Order Cancelled Successfully";
+
+                ClearFields();
+                LoadTables();
+                LoadOrders();
+                LoadOrderItems(0);
+                LoadOrderSummary();
+                LoadPopularItems();
+            }
+            catch (Exception ex)
+            {
+                lblMessage.Text = ex.Message;
+            }
+        }
+
+        void DeleteSelectedOrder(int orderID)
+        {
+            try
+            {
+                using (OracleConnection con = new OracleConnection(connectionString))
+                {
+                    con.Open();
+
+                    OracleCommand cmd = new OracleCommand("DeleteOrder", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.BindByName = true;
+
+                    cmd.Parameters.Add("p_order_id", OracleDbType.Int32)
+                        .Value = orderID;
+
+                    cmd.ExecuteNonQuery();
+                }
+
+                lblMessage.Text = "Order Deleted Successfully";
+
+                ClearFields();
+                LoadTables();
+                LoadOrders();
+                LoadOrderItems(0);
+                LoadOrderSummary();
+                LoadPopularItems();
+            }
+            catch (Exception ex)
+            {
+                lblMessage.Text = ex.Message;
+            }
+        }
