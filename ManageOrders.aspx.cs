@@ -569,3 +569,134 @@ namespace DineMaster
         }
 
 
+        protected void btnCreateOrderWithItem_Click(object sender, EventArgs e)
+        {
+            lblMessage.Text = "";
+
+            try
+            {
+                if (ddlCustomer.SelectedValue == "")
+                {
+                    lblMessage.Text = "Please select a customer.";
+                    return;
+                }
+
+                if (ddlTable.SelectedValue == "")
+                {
+                    lblMessage.Text = "Please select a table.";
+                    return;
+                }
+
+                if (ddlMenuItem.SelectedValue == "")
+                {
+                    lblMessage.Text = "Please select a food item.";
+                    return;
+                }
+
+                int quantity = Convert.ToInt32(txtQuantity.Text);
+
+                if (quantity <= 0)
+                {
+                    lblMessage.Text = "Quantity must be greater than zero.";
+                    return;
+                }
+
+                int selectedTableID = Convert.ToInt32(ddlTable.SelectedValue);
+                int orderID = 0;
+
+                using (OracleConnection con = new OracleConnection(connectionString))
+                {
+                    con.Open();
+
+                    if (hfOrderID.Value == "")
+                    {
+                        OracleCommand cmd = new OracleCommand("AddOrder", con);
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.BindByName = true;
+
+                        cmd.Parameters.Add("p_customer_id", OracleDbType.Int32)
+                            .Value = Convert.ToInt32(ddlCustomer.SelectedValue);
+
+                        cmd.Parameters.Add("p_table_id", OracleDbType.Int32)
+                            .Value = selectedTableID;
+
+                        cmd.Parameters.Add("p_staff_id", OracleDbType.Int32)
+                            .Value = Convert.ToInt32(Session["StaffID"]);
+
+                        cmd.Parameters.Add("p_order_status", OracleDbType.Varchar2)
+                            .Value = ddlOrderStatus.SelectedValue;
+
+                        OracleParameter outputOrderID =
+                            new OracleParameter("p_order_id", OracleDbType.Int32);
+
+                        outputOrderID.Direction = ParameterDirection.Output;
+
+                        cmd.Parameters.Add(outputOrderID);
+
+                        cmd.ExecuteNonQuery();
+
+                        orderID = Convert.ToInt32(outputOrderID.Value.ToString());
+
+                        hfOrderID.Value = orderID.ToString();
+
+                        lblSelectedOrder.Text =
+                            "Selected Order #" + orderID;
+                    }
+                    else
+                    {
+                        orderID = Convert.ToInt32(hfOrderID.Value);
+
+                        OracleCommand cmd = new OracleCommand("UpdateOrder", con);
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.BindByName = true;
+
+                        cmd.Parameters.Add("p_order_id", OracleDbType.Int32)
+                            .Value = orderID;
+
+                        cmd.Parameters.Add("p_customer_id", OracleDbType.Int32)
+                            .Value = Convert.ToInt32(ddlCustomer.SelectedValue);
+
+                        cmd.Parameters.Add("p_table_id", OracleDbType.Int32)
+                            .Value = selectedTableID;
+
+                        cmd.Parameters.Add("p_order_status", OracleDbType.Varchar2)
+                            .Value = ddlOrderStatus.SelectedValue;
+
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    OracleCommand itemCmd = new OracleCommand("AddOrderItem", con);
+                    itemCmd.CommandType = CommandType.StoredProcedure;
+                    itemCmd.BindByName = true;
+
+                    itemCmd.Parameters.Add("p_order_id", OracleDbType.Int32)
+                        .Value = orderID;
+
+                    itemCmd.Parameters.Add("p_item_id", OracleDbType.Int32)
+                        .Value = Convert.ToInt32(ddlMenuItem.SelectedValue);
+
+                    itemCmd.Parameters.Add("p_quantity", OracleDbType.Int32)
+                        .Value = quantity;
+
+                    itemCmd.ExecuteNonQuery();
+                }
+
+                txtQuantity.Text = "1";
+                ddlMenuItem.SelectedIndex = 0;
+
+                lblMessage.Text = "Order and food item saved successfully.";
+
+                LoadTables(selectedTableID);
+                ddlTable.SelectedValue = selectedTableID.ToString();
+
+                LoadOrders();
+                LoadOrderItems(orderID);
+                LoadOrderSummary();
+                LoadPopularItems();
+            }
+            catch (Exception ex)
+            {
+                lblMessage.Text = ex.Message;
+            }
+        }
+
