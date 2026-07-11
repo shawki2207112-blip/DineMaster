@@ -33,6 +33,7 @@ namespace DineMaster
                 try
                 {
                     CreateOrderPLSQLObjects();
+
                     LoadCustomers();
                     LoadTables();
                     LoadMenuItems();
@@ -46,7 +47,6 @@ namespace DineMaster
                     lblMessage.Text = ex.Message;
                 }
             }
-
         }
 
         void CreateOrderPLSQLObjects()
@@ -97,7 +97,6 @@ namespace DineMaster
                 UPDATE ORDERS
                 SET total_amount = GetOrderTotal(order_id);
             END;");
-
 
             ExecuteDDL(@"
             CREATE OR REPLACE PROCEDURE AddOrder
@@ -339,9 +338,7 @@ namespace DineMaster
 
                 COMMIT;
             END;");
-
         }
-
 
         void ExecuteDDL(string sql)
         {
@@ -353,6 +350,7 @@ namespace DineMaster
                 cmd.ExecuteNonQuery();
             }
         }
+
         void LoadCustomers()
         {
             using (OracleConnection con = new OracleConnection(connectionString))
@@ -568,7 +566,6 @@ namespace DineMaster
             }
         }
 
-
         protected void btnCreateOrderWithItem_Click(object sender, EventArgs e)
         {
             lblMessage.Text = "";
@@ -773,3 +770,127 @@ namespace DineMaster
                 lblMessage.Text = ex.Message;
             }
         }
+
+        protected void gvOrders_RowCommand(object sender, GridViewCommandEventArgs e)
+        {
+            int rowIndex = Convert.ToInt32(e.CommandArgument);
+
+            int orderID =
+                Convert.ToInt32(gvOrders.DataKeys[rowIndex].Value);
+
+            if (e.CommandName == "EditRow")
+            {
+                LoadSelectedOrder(orderID);
+            }
+
+            if (e.CommandName == "DeleteRow")
+            {
+                DeleteSelectedOrder(orderID);
+            }
+        }
+
+        void LoadSelectedOrder(int orderID)
+        {
+            try
+            {
+                int selectedTableID = 0;
+
+                using (OracleConnection con = new OracleConnection(connectionString))
+                {
+                    con.Open();
+
+                    string query =
+                    @"SELECT order_id, customer_id, table_id, order_status
+                      FROM ORDERS
+                      WHERE order_id = :order_id";
+
+                    OracleCommand cmd = new OracleCommand(query, con);
+                    cmd.BindByName = true;
+
+                    cmd.Parameters.Add(":order_id", OracleDbType.Int32)
+                        .Value = orderID;
+
+                    OracleDataReader dr = cmd.ExecuteReader();
+
+                    if (dr.Read())
+                    {
+                        hfOrderID.Value =
+                            dr["order_id"].ToString();
+
+                        ddlCustomer.SelectedValue =
+                            dr["customer_id"].ToString();
+
+                        selectedTableID =
+                            Convert.ToInt32(dr["table_id"]);
+
+                        LoadTables(selectedTableID);
+
+                        ddlTable.SelectedValue =
+                            selectedTableID.ToString();
+
+                        ddlOrderStatus.SelectedValue =
+                            dr["order_status"].ToString();
+
+                        lblSelectedOrder.Text =
+                            "Selected Order #" + hfOrderID.Value;
+                    }
+
+                    dr.Close();
+                }
+
+                LoadOrderItems(orderID);
+            }
+            catch (Exception ex)
+            {
+                lblMessage.Text = ex.Message;
+            }
+        }
+
+        protected void btnClear_Click(object sender, EventArgs e)
+        {
+            ClearFields();
+            LoadTables();
+            LoadOrderItems(0);
+            lblMessage.Text = "";
+        }
+
+        void ClearFields()
+        {
+            hfOrderID.Value = "";
+
+            if (ddlCustomer.Items.Count > 0)
+            {
+                ddlCustomer.SelectedIndex = 0;
+            }
+
+            if (ddlTable.Items.Count > 0)
+            {
+                ddlTable.SelectedIndex = 0;
+            }
+
+            if (ddlOrderStatus.Items.Count > 0)
+            {
+                ddlOrderStatus.SelectedIndex = 0;
+            }
+
+            if (ddlMenuItem.Items.Count > 0)
+            {
+                ddlMenuItem.SelectedIndex = 0;
+            }
+
+            txtQuantity.Text = "1";
+
+            lblSelectedOrder.Text = "No order selected";
+        }
+
+        int GetSelectedOrderID()
+        {
+            if (hfOrderID.Value == "")
+            {
+                return 0;
+            }
+
+            return Convert.ToInt32(hfOrderID.Value);
+        }
+    }
+}
