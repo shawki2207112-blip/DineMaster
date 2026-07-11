@@ -33,6 +33,10 @@ namespace DineMaster
                 try
                 {
                     CreateOrderPLSQLObjects();
+                    LoadCustomers();
+                    LoadTables();
+                    LoadMenuItems();
+
                 }
                 catch (Exception ex)
                 {
