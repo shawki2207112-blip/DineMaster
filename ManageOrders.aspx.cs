@@ -36,7 +36,10 @@ namespace DineMaster
                     LoadCustomers();
                     LoadTables();
                     LoadMenuItems();
-
+                    LoadOrders();
+                    LoadOrderItems(0);
+                    LoadOrderSummary();
+                    LoadPopularItems();
                 }
                 catch (Exception ex)
                 {
@@ -433,5 +436,136 @@ namespace DineMaster
             }
         }
 
+        void LoadOrders()
+        {
+            using (OracleConnection con = new OracleConnection(connectionString))
+            {
+                string query =
+                @"SELECT
+                    o.order_id AS ORDER_ID,
+                    c.customer_name AS CUSTOMER_NAME,
+                    t.table_number AS TABLE_NUMBER,
+                    TO_CHAR(o.order_date, 'DD-MON-YYYY HH:MI AM') AS ORDER_DATE,
+                    o.total_amount AS TOTAL_AMOUNT,
+                    o.order_status AS ORDER_STATUS
+                  FROM ORDERS o
+                  INNER JOIN CUSTOMERS c
+                    ON o.customer_id = c.customer_id
+                  INNER JOIN RESTAURANT_TABLES t
+                    ON o.table_id = t.table_id
+                  ORDER BY o.order_id DESC";
+
+                OracleDataAdapter da = new OracleDataAdapter(query, con);
+
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
+                gvOrders.DataSource = dt;
+                gvOrders.DataBind();
+            }
+        }
+
+        void LoadOrderItems(int orderID)
+        {
+            if (orderID == 0)
+            {
+                gvOrderItems.DataSource = null;
+                gvOrderItems.DataBind();
+                return;
+            }
+
+            using (OracleConnection con = new OracleConnection(connectionString))
+            {
+                string query =
+                @"SELECT
+                    oi.order_item_id AS ORDER_ITEM_ID,
+                    m.item_name AS ITEM_NAME,
+                    m.category AS CATEGORY,
+                    oi.quantity AS QUANTITY,
+                    oi.unit_price AS UNIT_PRICE,
+                    oi.subtotal AS SUBTOTAL
+                  FROM ORDER_ITEMS oi
+                  INNER JOIN MENU_ITEMS m
+                    ON oi.item_id = m.item_id
+                  WHERE oi.order_id = :order_id
+                  ORDER BY oi.order_item_id";
+
+                OracleCommand cmd = new OracleCommand(query, con);
+                cmd.BindByName = true;
+
+                cmd.Parameters.Add(":order_id", OracleDbType.Int32)
+                    .Value = orderID;
+
+                OracleDataAdapter da = new OracleDataAdapter(cmd);
+
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
+                gvOrderItems.DataSource = dt;
+                gvOrderItems.DataBind();
+            }
+        }
+
+        void LoadOrderSummary()
+        {
+            lblTotalOrders.Text =
+                GetSingleValue("SELECT COUNT(*) FROM ORDERS");
+
+            lblTotalSales.Text =
+                GetSingleValue("SELECT NVL(SUM(total_amount), 0) FROM ORDERS WHERE UPPER(order_status) <> 'CANCELLED'");
+
+            lblTotalItems.Text =
+                GetSingleValue("SELECT NVL(SUM(quantity), 0) FROM ORDER_ITEMS");
+
+            lblPendingOrders.Text =
+                GetSingleValue("SELECT COUNT(*) FROM ORDERS WHERE UPPER(order_status) = 'PENDING'");
+        }
+
+        string GetSingleValue(string query)
+        {
+            using (OracleConnection con = new OracleConnection(connectionString))
+            {
+                con.Open();
+
+                OracleCommand cmd = new OracleCommand(query, con);
+
+                object result = cmd.ExecuteScalar();
+
+                if (result == null)
+                {
+                    return "0";
+                }
+
+                return result.ToString();
+            }
+        }
+
+        void LoadPopularItems()
+        {
+            using (OracleConnection con = new OracleConnection(connectionString))
+            {
+                string query =
+                @"SELECT
+                    m.item_name AS ITEM_NAME,
+                    SUM(oi.quantity) AS TOTAL_QUANTITY,
+                    SUM(oi.subtotal) AS TOTAL_SALES
+                  FROM ORDER_ITEMS oi
+                  INNER JOIN MENU_ITEMS m
+                    ON oi.item_id = m.item_id
+                  INNER JOIN ORDERS o
+                    ON oi.order_id = o.order_id
+                  WHERE UPPER(o.order_status) <> 'CANCELLED'
+                  GROUP BY m.item_name
+                  ORDER BY TOTAL_QUANTITY DESC";
+
+                OracleDataAdapter da = new OracleDataAdapter(query, con);
+
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
+                gvPopularItems.DataSource = dt;
+                gvPopularItems.DataBind();
+            }
+        }
 
 
