@@ -1,0 +1,250 @@
+﻿body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: #f5f1ea;
+}
+
+/* Navbar */
+
+.navbar {
+    background: #6b3e26;
+    color: white;
+    padding: 15px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    margin-left: 25px;
+    font-size: 15px;
+}
+
+    .nav-links a:hover {
+        text-decoration: underline;
+    }
+
+/* Summary Cards */
+
+.summary-row {
+    width: 90%;
+    margin: 30px auto 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+}
+
+.summary-card {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0px 5px 15px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+    .summary-card h3 {
+        color: #6b3e26;
+        margin: 0 0 10px 0;
+        font-size: 16px;
+    }
+
+    .summary-card span,
+    .summary-card label {
+        font-size: 22px;
+        font-weight: bold;
+        color: #333;
+    }
+
+/* Layout */
+
+.container {
+    width: 90%;
+    margin: 30px auto;
+    display: flex;
+    gap: 25px;
+    align-items: flex-start;
+}
+
+.form-card {
+    width: 30%;
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0px 5px 15px rgba(0,0,0,0.1);
+}
+
+.grid-card {
+    width: 70%;
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0px 5px 15px rgba(0,0,0,0.1);
+    overflow-x: auto;
+}
+
+/* Form */
+
+h2 {
+    color: #6b3e26;
+    margin-top: 0;
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+    .input-group label,
+    .filter-box label {
+        display: block;
+        margin-bottom: 6px;
+        color: #444;
+        font-weight: 600;
+    }
+
+.input,
+.filter-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+.selected-box {
+    background: #faf1e2;
+    border-left: 5px solid #6b3e26;
+    padding: 12px;
+    margin-bottom: 18px;
+    border-radius: 8px;
+    color: #6b3e26;
+    font-weight: bold;
+}
+
+/* Filter */
+
+.filter-box {
+    margin-bottom: 20px;
+}
+
+/* Buttons */
+
+.button-area {
+    margin-top: 20px;
+}
+
+.save-btn {
+    background: #8b5e3c;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+    .save-btn:hover {
+        background: #6b3e26;
+    }
+
+.clear-btn {
+    background: #d9d9d9;
+    color: black;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+    .clear-btn:hover {
+        background: #bfbfbf;
+    }
+
+.cancel-btn {
+    background: #9b2c2c;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+    .cancel-btn:hover {
+        background: #7a1f1f;
+    }
+
+/* Message */
+
+.message {
+    display: block;
+    margin-top: 15px;
+    color: green;
+    font-weight: bold;
+}
+
+/* Grid */
+
+.customer-grid {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+    .customer-grid th {
+        background: #6b3e26;
+        color: white;
+        padding: 12px;
+        text-align: left;
+    }
+
+    .customer-grid td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .customer-grid tr:hover {
+        background: #f7f7f7;
+    }
+
+    .customer-grid a,
+    .customer-grid input[type="submit"] {
+        background: #8b5e3c;
+        color: white;
+        border: none;
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 13px;
+    }
+
+        .customer-grid a:hover,
+        .customer-grid input[type="submit"]:hover {
+            background: #6b3e26;
+        }
+
+/* Responsive */
+
+@media screen and (max-width: 900px) {
+    .summary-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .container {
+        flex-direction: column;
+    }
+
+    .form-card,
+    .grid-card {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
