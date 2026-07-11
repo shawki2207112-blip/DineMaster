@@ -336,5 +336,98 @@ namespace DineMaster
         }
 
 
+        void ExecuteDDL(string sql)
+        {
+            using (OracleConnection con = new OracleConnection(connectionString))
+            {
+                con.Open();
 
-       
+                OracleCommand cmd = new OracleCommand(sql, con);
+                cmd.ExecuteNonQuery();
+            }
+        }
+        void LoadCustomers()
+        {
+            using (OracleConnection con = new OracleConnection(connectionString))
+            {
+                string query =
+                @"SELECT customer_id, customer_name
+                  FROM CUSTOMERS
+                  ORDER BY customer_name";
+
+                OracleDataAdapter da = new OracleDataAdapter(query, con);
+
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
+                ddlCustomer.DataSource = dt;
+                ddlCustomer.DataTextField = "customer_name";
+                ddlCustomer.DataValueField = "customer_id";
+                ddlCustomer.DataBind();
+
+                ddlCustomer.Items.Insert(0,
+                    new ListItem("-- Select Customer --", ""));
+            }
+        }
+
+        void LoadTables(int selectedTableID = 0)
+        {
+            using (OracleConnection con = new OracleConnection(connectionString))
+            {
+                string query =
+                @"SELECT table_id,
+                         'Table ' || table_number || ' - ' || capacity || ' Seats (' || status || ')' AS table_info
+                  FROM RESTAURANT_TABLES
+                  WHERE UPPER(status) = 'AVAILABLE'
+                  OR table_id = :selected_table_id
+                  ORDER BY table_number";
+
+                OracleCommand cmd = new OracleCommand(query, con);
+                cmd.BindByName = true;
+
+                cmd.Parameters.Add(":selected_table_id", OracleDbType.Int32)
+                    .Value = selectedTableID;
+
+                OracleDataAdapter da = new OracleDataAdapter(cmd);
+
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
+                ddlTable.DataSource = dt;
+                ddlTable.DataTextField = "table_info";
+                ddlTable.DataValueField = "table_id";
+                ddlTable.DataBind();
+
+                ddlTable.Items.Insert(0,
+                    new ListItem("-- Select Table --", ""));
+            }
+        }
+
+        void LoadMenuItems()
+        {
+            using (OracleConnection con = new OracleConnection(connectionString))
+            {
+                string query =
+                @"SELECT item_id,
+                         item_name || ' - Tk ' || price AS item_info
+                  FROM MENU_ITEMS
+                  WHERE UPPER(availability) = 'AVAILABLE'
+                  ORDER BY item_name";
+
+                OracleDataAdapter da = new OracleDataAdapter(query, con);
+
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
+                ddlMenuItem.DataSource = dt;
+                ddlMenuItem.DataTextField = "item_info";
+                ddlMenuItem.DataValueField = "item_id";
+                ddlMenuItem.DataBind();
+
+                ddlMenuItem.Items.Insert(0,
+                    new ListItem("-- Select Food Item --", ""));
+            }
+        }
+
+
+
