@@ -406,8 +406,355 @@ namespace DineMaster
             }
         }
 
-       
+        // CREATE OR UPDATE 
 
-        
+        protected void btnSaveReservation_Click(object sender, EventArgs e)
+        {
+            lblMessage.Text = "";
+
+            try
+            {
+                if (ddlCustomer.SelectedValue == "")
+                {
+                    lblMessage.Text = "Please select a customer.";
+                    return;
+                }
+
+                if (ddlTable.SelectedValue == "")
+                {
+                    lblMessage.Text = "Please select a table.";
+                    return;
+                }
+
+                if (txtReservationDate.Text == "")
+                {
+                    lblMessage.Text = "Please select reservation date.";
+                    return;
+                }
+
+                if (txtReservationTime.Text == "")
+                {
+                    lblMessage.Text = "Please select reservation time.";
+                    return;
+                }
+
+                int numberOfPeople = Convert.ToInt32(txtNumberOfPeople.Text);
+
+                if (numberOfPeople <= 0)
+                {
+                    lblMessage.Text = "Number of people must be greater than zero.";
+                    return;
+                }
+
+                int selectedTableID = Convert.ToInt32(ddlTable.SelectedValue);
+
+                using (OracleConnection con = new OracleConnection(connectionString))
+                {
+                    con.Open();
+
+                    if (hfReservationID.Value == "")
+                    {
+                        OracleCommand cmd = new OracleCommand("AddReservation", con);
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.BindByName = true;
+
+                        cmd.Parameters.Add("p_customer_id", OracleDbType.Int32)
+                            .Value = Convert.ToInt32(ddlCustomer.SelectedValue);
+
+                        cmd.Parameters.Add("p_table_id", OracleDbType.Int32)
+                            .Value = selectedTableID;
+
+                        cmd.Parameters.Add("p_staff_id", OracleDbType.Int32)
+                            .Value = Convert.ToInt32(Session["StaffID"]);
+
+                        cmd.Parameters.Add("p_reservation_date", OracleDbType.Date)
+                            .Value = Convert.ToDateTime(txtReservationDate.Text);
+
+                        cmd.Parameters.Add("p_reservation_time", OracleDbType.Varchar2)
+                            .Value = txtReservationTime.Text;
+
+                        cmd.Parameters.Add("p_number_of_people", OracleDbType.Int32)
+                            .Value = numberOfPeople;
+
+                        cmd.Parameters.Add("p_status", OracleDbType.Varchar2)
+                            .Value = ddlStatus.SelectedValue;
+
+                        OracleParameter outputReservationID =
+                            new OracleParameter("p_reservation_id", OracleDbType.Int32);
+
+                        outputReservationID.Direction = ParameterDirection.Output;
+
+                        cmd.Parameters.Add(outputReservationID);
+
+                        cmd.ExecuteNonQuery();
+
+                        hfReservationID.Value =
+                            outputReservationID.Value.ToString();
+
+                        lblSelectedReservation.Text =
+                            "Selected Reservation #" + hfReservationID.Value;
+
+                        lblMessage.Text = "Reservation Created Successfully";
+                    }
+                    else
+                    {
+                        OracleCommand cmd = new OracleCommand("UpdateReservation", con);
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.BindByName = true;
+
+                        cmd.Parameters.Add("p_reservation_id", OracleDbType.Int32)
+                            .Value = Convert.ToInt32(hfReservationID.Value);
+
+                        cmd.Parameters.Add("p_customer_id", OracleDbType.Int32)
+                            .Value = Convert.ToInt32(ddlCustomer.SelectedValue);
+
+                        cmd.Parameters.Add("p_table_id", OracleDbType.Int32)
+                            .Value = selectedTableID;
+
+                        cmd.Parameters.Add("p_reservation_date", OracleDbType.Date)
+                            .Value = Convert.ToDateTime(txtReservationDate.Text);
+
+                        cmd.Parameters.Add("p_reservation_time", OracleDbType.Varchar2)
+                            .Value = txtReservationTime.Text;
+
+                        cmd.Parameters.Add("p_number_of_people", OracleDbType.Int32)
+                            .Value = numberOfPeople;
+
+                        cmd.Parameters.Add("p_status", OracleDbType.Varchar2)
+                            .Value = ddlStatus.SelectedValue;
+
+                        cmd.ExecuteNonQuery();
+
+                        lblMessage.Text = "Reservation Updated Successfully";
+                    }
+                }
+
+                LoadTables(selectedTableID);
+                ddlTable.SelectedValue = selectedTableID.ToString();
+
+                LoadReservations(ddlFilterStatus.SelectedValue);
+                LoadReservationSummary();
+            }
+            catch (Exception ex)
+            {
+                lblMessage.Text = ex.Message;
+            }
+        }
+
+
+        protected void btnCancelReservation_Click(object sender, EventArgs e)
+        {
+            int reservationID = GetSelectedReservationID();
+
+            if (reservationID == 0)
+            {
+                lblMessage.Text = "Please select a reservation first.";
+                return;
+            }
+
+            try
+            {
+                using (OracleConnection con = new OracleConnection(connectionString))
+                {
+                    con.Open();
+
+                    OracleCommand cmd = new OracleCommand("CancelReservation", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.BindByName = true;
+
+                    cmd.Parameters.Add("p_reservation_id", OracleDbType.Int32)
+                        .Value = reservationID;
+
+                    cmd.ExecuteNonQuery();
+                }
+
+                lblMessage.Text = "Reservation Cancelled Successfully";
+
+                ClearFields();
+                LoadTables();
+                LoadReservations(ddlFilterStatus.SelectedValue);
+                LoadReservationSummary();
+            }
+            catch (Exception ex)
+            {
+                lblMessage.Text = ex.Message;
+            }
+        }
+
+        void DeleteSelectedReservation(int reservationID)
+        {
+            try
+            {
+                using (OracleConnection con = new OracleConnection(connectionString))
+                {
+                    con.Open();
+
+                    OracleCommand cmd = new OracleCommand("DeleteReservation", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.BindByName = true;
+
+                    cmd.Parameters.Add("p_reservation_id", OracleDbType.Int32)
+                        .Value = reservationID;
+
+                    cmd.ExecuteNonQuery();
+                }
+
+                lblMessage.Text = "Reservation Deleted Successfully";
+
+                ClearFields();
+                LoadTables();
+                LoadReservations(ddlFilterStatus.SelectedValue);
+                LoadReservationSummary();
+            }
+            catch (Exception ex)
+            {
+                lblMessage.Text = ex.Message;
+            }
+        }
+
+
+        protected void gvReservations_RowCommand(
+            object sender,
+            GridViewCommandEventArgs e)
+        {
+            int rowIndex = Convert.ToInt32(e.CommandArgument);
+
+            int reservationID =
+                Convert.ToInt32(gvReservations.DataKeys[rowIndex].Value);
+
+            if (e.CommandName == "EditRow")
+            {
+                LoadSelectedReservation(reservationID);
+            }
+
+            if (e.CommandName == "DeleteRow")
+            {
+                DeleteSelectedReservation(reservationID);
+            }
+        }
+
+        void LoadSelectedReservation(int reservationID)
+        {
+            lblMessage.Text = "";
+
+            try
+            {
+                int selectedTableID = 0;
+
+                using (OracleConnection con = new OracleConnection(connectionString))
+                {
+                    con.Open();
+
+                    string query =
+                    @"SELECT
+                        reservation_id,
+                        customer_id,
+                        table_id,
+                        TO_CHAR(reservation_date, 'YYYY-MM-DD') AS reservation_date,
+                        reservation_time,
+                        number_of_people,
+                        status
+                      FROM RESERVATIONS
+                      WHERE reservation_id = :reservation_id";
+
+                    OracleCommand cmd = new OracleCommand(query, con);
+                    cmd.BindByName = true;
+
+                    cmd.Parameters.Add(":reservation_id", OracleDbType.Int32)
+                        .Value = reservationID;
+
+                    OracleDataReader dr = cmd.ExecuteReader();
+
+                    if (dr.Read())
+                    {
+                        hfReservationID.Value =
+                            dr["reservation_id"].ToString();
+
+                        ddlCustomer.SelectedValue =
+                            dr["customer_id"].ToString();
+
+                        selectedTableID =
+                            Convert.ToInt32(dr["table_id"]);
+
+                        LoadTables(selectedTableID);
+
+                        ddlTable.SelectedValue =
+                            selectedTableID.ToString();
+
+                        txtReservationDate.Text =
+                            dr["reservation_date"].ToString();
+
+                        txtReservationTime.Text =
+                            dr["reservation_time"].ToString();
+
+                        txtNumberOfPeople.Text =
+                            dr["number_of_people"].ToString();
+
+                        ddlStatus.SelectedValue =
+                            dr["status"].ToString();
+
+                        lblSelectedReservation.Text =
+                            "Selected Reservation #" + hfReservationID.Value;
+                    }
+
+                    dr.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                lblMessage.Text = ex.Message;
+            }
+        }
+
+        // FILTER
+
+        protected void btnFilter_Click(object sender, EventArgs e)
+        {
+            LoadReservations(ddlFilterStatus.SelectedValue);
+        }
+
+
+        protected void btnClear_Click(object sender, EventArgs e)
+        {
+            ClearFields();
+            LoadTables();
+            lblMessage.Text = "";
+        }
+
+        void ClearFields()
+        {
+            hfReservationID.Value = "";
+
+            if (ddlCustomer.Items.Count > 0)
+            {
+                ddlCustomer.SelectedIndex = 0;
+            }
+
+            if (ddlTable.Items.Count > 0)
+            {
+                ddlTable.SelectedIndex = 0;
+            }
+
+            if (ddlStatus.Items.Count > 0)
+            {
+                ddlStatus.SelectedIndex = 0;
+            }
+
+            txtReservationDate.Text = "";
+            txtReservationTime.Text = "";
+            txtNumberOfPeople.Text = "1";
+
+            lblSelectedReservation.Text = "No reservation selected";
+        }
+
+        int GetSelectedReservationID()
+        {
+            if (hfReservationID.Value == "")
+            {
+                return 0;
+            }
+
+            return Convert.ToInt32(hfReservationID.Value);
+        }
     }
 }
