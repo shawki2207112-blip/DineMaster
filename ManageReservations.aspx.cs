@@ -34,6 +34,10 @@ namespace DineMaster
                 {
                     CreateReservationPLSQLObjects();
 
+                    LoadCustomers();
+                    LoadTables();
+                    LoadReservations("All");
+                    LoadReservationSummary();
                 }
                 catch (Exception ex)
                 {
@@ -269,7 +273,141 @@ namespace DineMaster
             }
         }
 
+        // LOAD DROPDOWNS
+
+        void LoadCustomers()
+        {
+            using (OracleConnection con = new OracleConnection(connectionString))
+            {
+                string query =
+                @"SELECT customer_id, customer_name
+                  FROM CUSTOMERS
+                  ORDER BY customer_name";
+
+                OracleDataAdapter da = new OracleDataAdapter(query, con);
+
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
+                ddlCustomer.DataSource = dt;
+                ddlCustomer.DataTextField = "customer_name";
+                ddlCustomer.DataValueField = "customer_id";
+                ddlCustomer.DataBind();
+
+                ddlCustomer.Items.Insert(0,
+                    new ListItem("-- Select Customer --", ""));
+            }
+        }
+
+        void LoadTables(int selectedTableID = 0)
+        {
+            using (OracleConnection con = new OracleConnection(connectionString))
+            {
+                string query =
+                @"SELECT table_id,
+                         'Table ' || table_number || ' - ' || capacity || ' Seats (' || status || ')' AS table_info
+                  FROM RESTAURANT_TABLES
+                  WHERE UPPER(status) = 'AVAILABLE'
+                  OR table_id = :selected_table_id
+                  ORDER BY table_number";
+
+                OracleCommand cmd = new OracleCommand(query, con);
+                cmd.BindByName = true;
+
+                cmd.Parameters.Add(":selected_table_id", OracleDbType.Int32)
+                    .Value = selectedTableID;
+
+                OracleDataAdapter da = new OracleDataAdapter(cmd);
+
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
+                ddlTable.DataSource = dt;
+                ddlTable.DataTextField = "table_info";
+                ddlTable.DataValueField = "table_id";
+                ddlTable.DataBind();
+
+                ddlTable.Items.Insert(0,
+                    new ListItem("-- Select Table --", ""));
+            }
+        }
+
+
+
+        void LoadReservations(string statusFilter)
+        {
+            using (OracleConnection con = new OracleConnection(connectionString))
+            {
+                string query =
+                @"SELECT
+                    r.reservation_id AS RESERVATION_ID,
+                    c.customer_name AS CUSTOMER_NAME,
+                    t.table_number AS TABLE_NUMBER,
+                    GetReservationStaffName(r.staff_id) AS STAFF_NAME,
+                    TO_CHAR(r.reservation_date, 'DD-MON-YYYY') AS RESERVATION_DATE,
+                    r.reservation_time AS RESERVATION_TIME,
+                    r.number_of_people AS NUMBER_OF_PEOPLE,
+                    r.status AS STATUS
+                  FROM RESERVATIONS r
+                  INNER JOIN CUSTOMERS c
+                    ON r.customer_id = c.customer_id
+                  INNER JOIN RESTAURANT_TABLES t
+                    ON r.table_id = t.table_id
+                  WHERE (:status_filter = 'All' OR r.status = :status_filter)
+                  ORDER BY r.reservation_id DESC";
+
+                OracleCommand cmd = new OracleCommand(query, con);
+                cmd.BindByName = true;
+
+                cmd.Parameters.Add(":status_filter", OracleDbType.Varchar2)
+                    .Value = statusFilter;
+
+                OracleDataAdapter da = new OracleDataAdapter(cmd);
+
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
+                gvReservations.DataSource = dt;
+                gvReservations.DataBind();
+            }
+        }
+
+        void LoadReservationSummary()
+        {
+            using (OracleConnection con = new OracleConnection(connectionString))
+            {
+                string query =
+                @"SELECT
+                    COUNT(*) AS TOTAL_RESERVATIONS,
+                    SUM(CASE WHEN UPPER(status) = 'RESERVED' THEN 1 ELSE 0 END) AS ACTIVE_RESERVATIONS,
+                    SUM(CASE WHEN UPPER(status) = 'CANCELLED' THEN 1 ELSE 0 END) AS CANCELLED_RESERVATIONS,
+                    NVL(SUM(CASE WHEN UPPER(status) <> 'CANCELLED' THEN number_of_people ELSE 0 END), 0) AS TOTAL_GUESTS
+                  FROM RESERVATIONS";
+
+                OracleDataAdapter da = new OracleDataAdapter(query, con);
+
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
+                if (dt.Rows.Count > 0)
+                {
+                    lblTotalReservations.Text =
+                        dt.Rows[0]["TOTAL_RESERVATIONS"].ToString();
+
+                    lblActiveReservations.Text =
+                        dt.Rows[0]["ACTIVE_RESERVATIONS"].ToString();
+
+                    lblCancelledReservations.Text =
+                        dt.Rows[0]["CANCELLED_RESERVATIONS"].ToString();
+
+                    lblTotalGuests.Text =
+                        dt.Rows[0]["TOTAL_GUESTS"].ToString();
+                }
+            }
+        }
+
        
 
+        
     }
 }
