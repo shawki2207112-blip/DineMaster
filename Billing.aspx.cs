@@ -33,6 +33,11 @@ namespace DineMaster
                 try
                 {
                     CreateBillingPLSQLObjects();
+
+                    LoadOrders();
+                    LoadBills();
+                    LoadOrderItems(0);
+                    ClearBillInfo();
                 }
                 catch (Exception ex)
                 {
@@ -184,6 +189,162 @@ namespace DineMaster
         }
 
 
-        
+        void LoadOrders()
+        {
+            using (OracleConnection con = new OracleConnection(connectionString))
+            {
+                string query =
+                @"SELECT
+                    o.order_id,
+                    'Order #' || o.order_id || ' - ' || c.customer_name || ' - Tk ' || o.total_amount AS order_info
+                  FROM ORDERS o
+                  INNER JOIN CUSTOMERS c
+                    ON o.customer_id = c.customer_id
+                  WHERE UPPER(o.order_status) <> 'CANCELLED'
+                  ORDER BY o.order_id DESC";
+
+                OracleDataAdapter da = new OracleDataAdapter(query, con);
+
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
+                ddlOrder.DataSource = dt;
+                ddlOrder.DataTextField = "order_info";
+                ddlOrder.DataValueField = "order_id";
+                ddlOrder.DataBind();
+
+                ddlOrder.Items.Insert(0,
+                    new ListItem("-- Select Order --", ""));
+            }
+        }
+
+
+        void LoadOrderInfo(int orderID)
+        {
+            using (OracleConnection con = new OracleConnection(connectionString))
+            {
+                string query =
+                @"SELECT
+                    c.customer_name,
+                    t.table_number,
+                    o.order_status,
+                    o.total_amount
+                  FROM ORDERS o
+                  INNER JOIN CUSTOMERS c
+                    ON o.customer_id = c.customer_id
+                  INNER JOIN RESTAURANT_TABLES t
+                    ON o.table_id = t.table_id
+                  WHERE o.order_id = :order_id";
+
+                OracleCommand cmd = new OracleCommand(query, con);
+                cmd.BindByName = true;
+
+                cmd.Parameters.Add(":order_id", OracleDbType.Int32)
+                    .Value = orderID;
+
+                con.Open();
+
+                OracleDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    lblCustomerName.Text =
+                        dr["customer_name"].ToString();
+
+                    lblTableNumber.Text =
+                        dr["table_number"].ToString();
+
+                    lblOrderStatus.Text =
+                        dr["order_status"].ToString();
+
+                    lblTotalAmount.Text =
+                        dr["total_amount"].ToString();
+                }
+
+                dr.Close();
+            }
+        }
+
+
+        void LoadOrderItems(int orderID)
+        {
+            if (orderID == 0)
+            {
+                gvOrderItems.DataSource = null;
+                gvOrderItems.DataBind();
+                return;
+            }
+
+            using (OracleConnection con = new OracleConnection(connectionString))
+            {
+                string query =
+                @"SELECT
+                    m.item_name AS ITEM_NAME,
+                    m.category AS CATEGORY,
+                    oi.quantity AS QUANTITY,
+                    oi.unit_price AS UNIT_PRICE,
+                    oi.subtotal AS SUBTOTAL
+                  FROM ORDER_ITEMS oi
+                  INNER JOIN MENU_ITEMS m
+                    ON oi.item_id = m.item_id
+                  WHERE oi.order_id = :order_id
+                  ORDER BY oi.order_item_id";
+
+                OracleCommand cmd = new OracleCommand(query, con);
+                cmd.BindByName = true;
+
+                cmd.Parameters.Add(":order_id", OracleDbType.Int32)
+                    .Value = orderID;
+
+                OracleDataAdapter da = new OracleDataAdapter(cmd);
+
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
+                gvOrderItems.DataSource = dt;
+                gvOrderItems.DataBind();
+            }
+        }
+
+
+        void LoadBills()
+        {
+            using (OracleConnection con = new OracleConnection(connectionString))
+            {
+                string query =
+                @"SELECT
+                    b.bill_id AS BILL_ID,
+                    b.order_id AS ORDER_ID,
+                    c.customer_name AS CUSTOMER_NAME,
+                    TO_CHAR(b.bill_date, 'DD-MON-YYYY HH:MI AM') AS BILL_DATE,
+                    b.total_bill AS TOTAL_BILL,
+                    b.payment_status AS PAYMENT_STATUS
+                  FROM BILLS b
+                  INNER JOIN ORDERS o
+                    ON b.order_id = o.order_id
+                  INNER JOIN CUSTOMERS c
+                    ON o.customer_id = c.customer_id
+                  ORDER BY b.bill_id DESC";
+
+                OracleDataAdapter da = new OracleDataAdapter(query, con);
+
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
+                gvBills.DataSource = dt;
+                gvBills.DataBind();
+            }
+        }
+
+
+
+
+        void ClearBillInfo()
+        {
+            lblCustomerName.Text = "-";
+            lblTableNumber.Text = "-";
+            lblOrderStatus.Text = "-";
+            lblTotalAmount.Text = "0";
+        }
     }
 }
