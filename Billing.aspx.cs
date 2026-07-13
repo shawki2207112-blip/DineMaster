@@ -337,7 +337,93 @@ namespace DineMaster
         }
 
 
+        protected void ddlOrder_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            lblMessage.Text = "";
 
+            if (ddlOrder.SelectedValue == "")
+            {
+                ClearBillInfo();
+                LoadOrderItems(0);
+                return;
+            }
+
+            int orderID = Convert.ToInt32(ddlOrder.SelectedValue);
+
+            LoadOrderInfo(orderID);
+            LoadOrderItems(orderID);
+        }
+
+        protected void btnGenerateBill_Click(object sender, EventArgs e)
+        {
+            lblMessage.Text = "";
+
+            try
+            {
+                if (ddlOrder.SelectedValue == "")
+                {
+                    lblMessage.Text = "Please select an order first.";
+                    return;
+                }
+
+                int orderID = Convert.ToInt32(ddlOrder.SelectedValue);
+
+                using (OracleConnection con = new OracleConnection(connectionString))
+                {
+                    con.Open();
+
+                    OracleCommand cmd = new OracleCommand("GenerateBill", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.BindByName = true;
+
+                    cmd.Parameters.Add("p_order_id", OracleDbType.Int32)
+                        .Value = orderID;
+
+                    cmd.Parameters.Add("p_staff_id", OracleDbType.Int32)
+                        .Value = Convert.ToInt32(Session["StaffID"]);
+
+                    OracleParameter outputBillID =
+                        new OracleParameter("p_bill_id", OracleDbType.Int32);
+
+                    outputBillID.Direction = ParameterDirection.Output;
+
+                    cmd.Parameters.Add(outputBillID);
+
+                    cmd.ExecuteNonQuery();
+
+                    hfBillID.Value =
+                        outputBillID.Value.ToString();
+                }
+
+                lblMessage.Text =
+                    "Bill Generated Successfully. Bill ID: " + hfBillID.Value;
+
+                LoadOrderInfo(orderID);
+                LoadOrders();
+                LoadOrderItems(orderID);
+                LoadBills();
+            }
+            catch (Exception ex)
+            {
+                lblMessage.Text = ex.Message;
+            }
+        }
+
+
+        protected void btnClear_Click(object sender, EventArgs e)
+        {
+            hfBillID.Value = "";
+
+            if (ddlOrder.Items.Count > 0)
+            {
+                ddlOrder.SelectedIndex = 0;
+            }
+
+            ClearBillInfo();
+            LoadOrderItems(0);
+
+            lblMessage.Text = "";
+        }
 
         void ClearBillInfo()
         {
